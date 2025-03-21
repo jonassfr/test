@@ -24,6 +24,9 @@ try:
     data = worksheet.get_all_records()  # Holt alle Zeilen als Dictionary
     
     st.write("📊 Tabelleninhalte:", data)
+    if st.button("➕ Neue Zeile hinzufügen"):
+    worksheet.append_row(["Jonas", "Schaefer", "Streamlit Test"])
+    st.success("✅ Neue Zeile erfolgreich hinzugefügt!")
 
 except Exception as e:
     st.error(f"❌ Fehler bei der Authentifizierung: {e}")
