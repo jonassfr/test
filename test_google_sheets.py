@@ -10,9 +10,7 @@ credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
 
 
 
-# Authentifiziere mit Google Sheets API
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
-client = gspread.authorize(creds)
+
 
 # Test: Liste verfügbare Google Sheets auf
 try:
