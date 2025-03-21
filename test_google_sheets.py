@@ -20,8 +20,6 @@ try:
     spreadsheet = client.open("MeineDaten")  # Name der Tabelle (Google Sheet)
     worksheet = spreadsheet.sheet1  # Wählt das erste Arbeitsblatt aus
     
-    # Test: Lese alle Daten aus der Tabelle
-    data = worksheet.get_all_records()  # Holt alle Zeilen als Dictionary
     
     st.write("📊 Tabelleninhalte:", data)
     if st.button("➕ Neue Zeile hinzufügen"):
