@@ -7,8 +7,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
 
 
-# Fix: Ersetze `\n` mit echten Zeilenumbrüchen
-creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 
 # Debugging (entfernen, falls nicht mehr nötig)
 st.write("🔑 Private Key Preview:", creds_dict["private_key"][:100])
