@@ -5,7 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # Lade Google Credentials aus Streamlit Secrets
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
-creds_dict = json.loads(credentials_json)
+
 
 # Fix: Ersetze `\n` mit echten Zeilenumbrüchen
 creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
