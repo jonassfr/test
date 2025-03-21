@@ -6,6 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 try:
     creds_json = st.secrets["GOOGLE_CREDENTIALS"]
     creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])  # Stelle sicher, dass es ein Dictionary ist
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
     st.write("🔍 Private Key Vorschau:", creds_json["private_key"][:50] + "...")
    
 
