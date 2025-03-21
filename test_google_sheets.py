@@ -6,15 +6,21 @@ import gspread
 # Load Google Credentials from Streamlit Secrets
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
 
-# Debugging: Print the first few characters to verify it's correctly retrieved
-st.write(f"First 50 characters of secret: {credentials_json[:50]}...")
-
 try:
     creds_dict = json.loads(credentials_json)
-except json.JSONDecodeError as e:
-    st.error(f"Error decoding JSON: {e}")
-    st.stop()
 
-# Authenticate with Google Sheets API
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
-client = gspread.authorize(creds)
+    # Ensure private_key is correctly formatted
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+    # Authenticate with Google Sheets API
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
+    client = gspread.authorize(creds)
+
+    st.success("✅ Google Sheets API connected successfully!")
+
+except json.JSONDecodeError as e:
+    st.error(f"JSON Decoding Error: {e}")
+    st.stop()
+except Exception as e:
+    st.error(f"Unexpected Error: {e}")
+    st.stop()
