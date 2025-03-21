@@ -7,9 +7,10 @@ import gspread
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
 
 try:
+    # Convert JSON string to dictionary
     creds_dict = json.loads(credentials_json)
 
-    # Ensure private_key is correctly formatted
+    # Ensure private_key has proper newlines
     creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 
     # Authenticate with Google Sheets API
