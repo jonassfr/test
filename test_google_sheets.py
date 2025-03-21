@@ -1,30 +1,26 @@
-import json
 import streamlit as st
-from oauth2client.service_account import ServiceAccountCredentials
+import json
 import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Lade Google Credentials aus Streamlit Secrets
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
+creds_dict = json.loads(credentials_json)
 
+# Fix: Ersetze `\n` mit echten Zeilenumbrüchen
+creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+# Debugging (entfernen, falls nicht mehr nötig)
+st.write("🔑 Private Key Preview:", creds_dict["private_key"][:100])
+
+# Authentifiziere mit Google Sheets API
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
+client = gspread.authorize(creds)
+
+# Test: Liste verfügbare Google Sheets auf
 try:
-    # JSON-String in ein Dictionary umwandeln
-    creds_dict = json.loads(credentials_json)
-
-    # Sicherstellen, dass die private_key das richtige Format hat
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
-
-    # Debug: Zeige die ersten 100 Zeichen des private_key, um Formatfehler zu finden
-    st.write("Private Key Preview:", creds_dict["private_key"][:100])
-
-    # Authentifiziere mit Google Sheets API
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
-    client = gspread.authorize(creds)
-
-    st.success("✅ Google Sheets API connected successfully!")
-
-except json.JSONDecodeError as e:
-    st.error(f"❌ JSON Decoding Error: {e}")
-    st.stop()
+    spreadsheet_list = client.openall()
+    st.success("✅ Verbindung erfolgreich!")
+    st.write("📄 Verfügbare Tabellen:", [sheet.title for sheet in spreadsheet_list])
 except Exception as e:
-    st.error(f"❌ Unexpected Error: {e}")
-    st.stop()
+    st.error(f"❌ Fehler: {e}")
