@@ -1,18 +1,11 @@
 import streamlit as st
-import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Lade Google Credentials aus Streamlit Secrets
 try:
-    credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
-    creds_dict = json.loads(json.dumps(credentials_json))  # Sicherstellen, dass es ein JSON-Objekt ist
-
-    # Fix: Ersetze doppelte Escape-Sequenzen für den Private Key
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
-
-    # Debugging: Zeige den Private Key teilweise an (später entfernen!)
-    st.write("🔑 Private Key Preview:", creds_dict["private_key"][:50])
+    creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])  # Stelle sicher, dass es ein normales Dict ist
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")  # Fix für Zeilenumbrüche im Private Key
 
     # Authentifiziere mit Google Sheets API
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
