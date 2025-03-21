@@ -4,8 +4,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # Lade Google Credentials aus Streamlit Secrets
 try:
-    creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])  # Stelle sicher, dass es ein normales Dict ist
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")  # Fix für Zeilenumbrüche im Private Key
+    creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])  # Stelle sicher, dass es ein Dictionary ist
+    
+    # Private Key richtig formatieren
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 
     # Authentifiziere mit Google Sheets API
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
