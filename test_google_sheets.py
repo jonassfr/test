@@ -6,8 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 try:
     creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])  # Stelle sicher, dass es ein Dictionary ist
     
-    # Private Key richtig formatieren
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+   
 
     # Authentifiziere mit Google Sheets API
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
