@@ -8,8 +8,7 @@ credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
 
 
 
-# Debugging (entfernen, falls nicht mehr nötig)
-st.write("🔑 Private Key Preview:", creds_dict["private_key"][:100])
+
 
 # Authentifiziere mit Google Sheets API
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
