@@ -1,24 +1,20 @@
-import streamlit as st
-import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import json
+import streamlit as st
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 
-# Lade Google Credentials aus Streamlit Secrets
+# Load Google Credentials from Streamlit Secrets
 credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
-creds_dict = json.loads(credentials_json)
 
-# Authentifiziere mit Google Sheets API
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
+# Debugging: Print the first few characters to verify it's correctly retrieved
+st.write(f"First 50 characters of secret: {credentials_json[:50]}...")
 
-# Verbindung testen
-st.title("🔍 Google Sheets Test")
 try:
-    sheet = client.open("MeineDaten").sheet1  # Name des Google Sheets
-    data = sheet.get_all_records()  # Alle Daten abrufen
-    st.success("✅ Verbindung erfolgreich! Hier sind die Daten aus Google Sheets:")
-    st.write(pd.DataFrame(data))  # Daten als Tabelle anzeigen
-except Exception as e:
-    st.error(f"❌ Fehler beim Zugriff auf Google Sheets: {e}")
+    creds_dict = json.loads(credentials_json)
+except json.JSONDecodeError as e:
+    st.error(f"Error decoding JSON: {e}")
+    st.stop()
+
+# Authenticate with Google Sheets API
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
+client = gspread.authorize(creds)
