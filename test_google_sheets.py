@@ -16,7 +16,14 @@ try:
     # Test: Liste verfügbare Google Sheets auf
     spreadsheet_list = client.openall()
     st.success("✅ Verbindung erfolgreich!")
-    st.write("📄 Verfügbare Tabellen:", [sheet.title for sheet in spreadsheet_list])
+    # Öffne das Google Sheet
+    spreadsheet = client.open("MeineDaten")  # Name der Tabelle (Google Sheet)
+    worksheet = spreadsheet.sheet1  # Wählt das erste Arbeitsblatt aus
+    
+    # Test: Lese alle Daten aus der Tabelle
+    data = worksheet.get_all_records()  # Holt alle Zeilen als Dictionary
+    
+    st.write("📊 Tabelleninhalte:", data)
 
 except Exception as e:
     st.error(f"❌ Fehler bei der Authentifizierung: {e}")
