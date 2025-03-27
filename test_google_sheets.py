@@ -4,12 +4,12 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
-# ✅ Google Verbindung herstellen
+# ✅ Connect to Google Sheets
 creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
 client = gspread.authorize(creds)
 
-# ✅ Tabelle laden
+# ✅ Load Sheet
 SHEET_NAME = "FuhrparkDaten"
 def get_sheet():
     return client.open(SHEET_NAME).sheet1
@@ -27,14 +27,14 @@ def insert_data(row):
     sheet.append_row(row)
 
 # ✅ UI Start
-st.title("🚗 Fuhrparkverwaltung")
+st.title("🚗 Vehicle Management")
 
-st.header("➕ Neuen Eintrag hinzufügen")
+st.header("➕ Add New Entry")
 with st.form("new_entry_form"):
-    date = st.date_input("Datum")
-    user = st.selectbox("Wer trägt ein?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
+    date = st.date_input("Date")
+    user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
     
-    # Automatisch Modell zuordnen
+    # Automatically assign car model based on user
     car_mapping = {
         "Bea": "Honda CRV",
         "Nik": "Honda Accord",
@@ -44,16 +44,16 @@ with st.form("new_entry_form"):
     }
     car_model = f"{user} {car_mapping[user]}"
     
-    service_center = st.text_input("Werkstatt")
-    service_type = st.selectbox("Art des Services", ["TÜV", "Ölwechsel", "Reifen", "Bremsen", "Inspektion", "Sonstiges"])
-    cost = st.number_input("Kosten ($)", min_value=0.0, step=10.0)
+    service_center = st.text_input("Service Center")
+    service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Other"])
+    cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
     status = st.selectbox("Status", ["active", "paused", "finished"])
-    notes = st.text_input("Notizen")
+    notes = st.text_input("Notes")
     
-    is_recurring = st.checkbox("🔁 Wiederkehrender Service?")
-    next_service = st.date_input("Nächstes Servicedatum", disabled=not is_recurring)
+    is_recurring = st.checkbox("🔁 Recurring Service?")
+    next_service = st.date_input("Next Service Date", disabled=not is_recurring)
 
-    submitted = st.form_submit_button("✅ Eintrag speichern")
+    submitted = st.form_submit_button("✅ Save Entry")
     if submitted:
         row = [
             date.strftime("%m/%d/%Y"),
@@ -68,29 +68,29 @@ with st.form("new_entry_form"):
             next_service.strftime("%m/%d/%Y") if is_recurring else ""
         ]
         insert_data(row)
-        st.success("✅ Eintrag erfolgreich gespeichert!")
+        st.success("✅ Entry successfully saved!")
         st.rerun()
 
-# ✅ Daten anzeigen
-st.header("📋 Übersicht aller Einträge")
+# ✅ Display Data
+st.header("📋 All Entries")
 df = get_data()
 
-# Stelle sicher, dass Cost ($) numerisch ist
+# Make sure Cost ($) is numeric
 df["Cost ($)"] = pd.to_numeric(df["Cost ($)"], errors="coerce")
 
-# 🔍 Filter nach Auto
-car_filter = st.selectbox("🚘 Filter nach Auto", ["Alle"] + df["Car Model"].unique().tolist())
-if car_filter != "Alle":
+# 🔍 Filter by Car
+car_filter = st.selectbox("🚘 Filter by Car", ["All"] + df["Car Model"].unique().tolist())
+if car_filter != "All":
     df = df[df["Car Model"] == car_filter]
 
-# 📆 Sortierung nach Datum (optional)
+# 📆 Sort by date
 df["Date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y")
 df = df.sort_values(by="Date", ascending=False)
 
-# 💸 Gesamtkosten anzeigen
-st.markdown(f"**💰 Gesamtkosten:** ${df['Cost ($)'].sum():,.2f}")
+# 💸 Total cost display
+st.markdown(f"**💰 Total Cost:** ${df['Cost ($)'].sum():,.2f}")
 
-# 🔔 Reminderanzeige für fällige Services
+# 🔔 Reminder for due services
 today = datetime.today()
 reminders = df[
     (df["Is Recurring"] == "yes") &
@@ -99,10 +99,9 @@ reminders = df[
 ]
 
 if not reminders.empty:
-    st.warning("🔔 Fällige Services:")
+    st.warning("🔔 Upcoming Services Due:")
     for _, row in reminders.iterrows():
-        st.write(f"- {row['Car Model']} (fällig am {row['Next Service Date']})")
+        st.write(f"- {row['Car Model']} (due on {row['Next Service Date']})")
 
-# 📊 Tabelle anzeigen
+# 📊 Show table
 st.dataframe(df, use_container_width=True)
-
