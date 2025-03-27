@@ -75,6 +75,9 @@ with st.form("new_entry_form"):
 st.header("📋 Übersicht aller Einträge")
 df = get_data()
 
+# Stelle sicher, dass Cost ($) numerisch ist
+df["Cost ($)"] = pd.to_numeric(df["Cost ($)"], errors="coerce")
+
 # 🔍 Filter nach Auto
 car_filter = st.selectbox("🚘 Filter nach Auto", ["Alle"] + df["Car Model"].unique().tolist())
 if car_filter != "Alle":
