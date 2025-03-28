@@ -31,10 +31,11 @@ st.title("🚗 Vehicle Management")
 
 st.header("➕ Add New Entry")
 is_recurring = st.checkbox("🔁 Recurring Service?")
+user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
 
 with st.form("new_entry_form"):
     date = st.date_input("Date")
-    user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
+    
     
     # Automatically assign car model based on user
     car_mapping = {
