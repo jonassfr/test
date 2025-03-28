@@ -123,3 +123,25 @@ if not reminders.empty:
 
 # 📊 Show table
 st.dataframe(df, use_container_width=True)
+
+st.markdown("---")
+st.subheader("🗑️ Manage Entries")
+
+# +1 because Google Sheets is 1-indexed and has header row
+for i, row in df.iterrows():
+    with st.expander(f"📝 Entry {i+2}: {row['Car Model']} | {row['Date'].strftime('%m/%d/%Y')}"):
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            st.write(f"Service: **{row['Service Type']}** at **{row['Service Center']}**")
+            st.write(f"Submitted by: **{row['User']}**")
+            st.write(f"Cost: **${row['Cost ($)']}**")
+            st.write(f"Status: **{row['Status']}**")
+        with col2:
+            confirm = st.checkbox("Yes, I’m sure I want to delete this entry.", key=f"confirm_{i}")
+            if confirm:
+                if st.button("🗑️ Delete", key=f"delete_{i}"):
+                    sheet = get_sheet()
+                    sheet.delete_rows(i + 2)
+                    st.success("✅ Entry deleted.")
+                    st.rerun()
+
