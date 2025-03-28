@@ -148,7 +148,7 @@ grid_response = AgGrid(
 
 selected = grid_response['selected_rows']
 
-if selected:
+if len(selected) > 0:
     st.markdown("### 🗑️ Delete Selected Entry")
     row = selected[0]
 
