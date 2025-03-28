@@ -72,7 +72,9 @@ with st.form("new_entry_form"):
             status,
             notes,
             "yes" if is_recurring else "no",
-            next_service.strftime("%m/%d/%Y") if is_recurring else ""
+            next_service.strftime("%m/%d/%Y") if is_recurring else "",
+            mileage_last,
+            mileage_interval
         ]
         insert_data(row)
         st.success("✅ Entry successfully saved!")
