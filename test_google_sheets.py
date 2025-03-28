@@ -111,7 +111,12 @@ reminders = df[
 if not reminders.empty:
     st.warning("🔔 Upcoming Services Due:")
     for _, row in reminders.iterrows():
-        st.write(f"- {row['Car Model']} (due on {row['Next Service Date']})")
+        mileage_info = f"{int(row['Mileage (Last)'])} mi / every {int(row['Mileage Interval'])} mi" \
+            if row["Mileage (Last)"] and row["Mileage Interval"] else "Mileage info missing"
+        st.write(
+            f"- {row['Car Model']} (due on {row['Next Service Date']} | {mileage_info})"
+        )
+
 
 # 📊 Show table
 st.dataframe(df, use_container_width=True)
