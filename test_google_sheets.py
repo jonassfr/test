@@ -122,8 +122,7 @@ if not reminders.empty:
         )
 
 
-# 📊 Show table
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+
 
 st.markdown("---")
 st.subheader("🧾 All Entries (with delete option)")
