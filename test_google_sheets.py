@@ -30,7 +30,7 @@ def insert_data(row):
 st.title("🚗 Vehicle Management")
 
 st.header("➕ Add New Entry")
-is_recurring = st.checkbox("🔁 Is this a recurring service?")
+is_recurring = st.checkbox("🔁 Is this a recurring service? If yes check the box!")
 user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
 
 with st.form("new_entry_form"):
