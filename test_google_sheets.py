@@ -126,10 +126,9 @@ st.dataframe(df, use_container_width=True)
 st.markdown("---")
 st.subheader("🗑️ Delete an Entry")
 
-# Neue Label-Spalte (Datum vorher in string umwandeln!)
+# String-Datum + Label bauen
 df_display = df.copy()
 df_display["Date_str"] = df_display["Date"].dt.strftime("%m/%d/%Y")
-
 df_display["Label"] = df_display.apply(
     lambda row: f"{row['Date_str']} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
 )
@@ -142,11 +141,12 @@ if confirm and st.button("🗑️ Delete selected entry"):
     match = df_display[df_display["Label"] == entry_to_delete]
 
     if not match.empty:
-        row_index = match.index[0]
+        row_index = int(match.index[0])  # 👈 Hier ist der entscheidende Fix
         sheet = get_sheet()
-        sheet.delete_rows(row_index + 2)  # Header + 0-indexed
+        sheet.delete_rows(row_index + 2)
         st.success("✅ Entry deleted.")
         st.rerun()
     else:
         st.error("⚠️ Could not find the entry in the table.")
+
 
