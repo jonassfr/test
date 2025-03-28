@@ -3,7 +3,6 @@ import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 # ✅ Connect to Google Sheets
 creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])
@@ -31,7 +30,7 @@ def insert_data(row):
 st.title("🚗 Vehicle Management")
 
 st.header("➕ Add New Entry")
-is_recurring = st.checkbox("🔁 Is this a recurring service? If yes check the box!")
+is_recurring = st.checkbox("🔁 Recurring Service?")
 user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
 
 with st.form("new_entry_form"):
@@ -122,54 +121,5 @@ if not reminders.empty:
         )
 
 
-
-
-st.markdown("---")
-st.subheader("🧾 All Entries (with delete option)")
-
-# Re-lade Daten
-df = get_data()
-df["Cost ($)"] = pd.to_numeric(df["Cost ($)"], errors="coerce")
-df["Date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y")
-
-# AgGrid Konfiguration
-gb = GridOptionsBuilder.from_dataframe(df)
-gb.configure_pagination()
-gb.configure_selection(selection_mode="single", use_checkbox=True)
-grid_options = gb.build()
-
-grid_response = AgGrid(
-    df,
-    gridOptions=grid_options,
-    update_mode=GridUpdateMode.SELECTION_CHANGED,
-    height=400,
-    fit_columns_on_grid_load=True
-)
-
-selected = grid_response['selected_rows']
-
-if len(selected) > 0:
-    st.markdown("### 🗑️ Delete Selected Entry")
-    row = selected[0]
-
-    # Bestimme Zeile im DataFrame
-    match = df[
-        (df["Date"] == pd.to_datetime(row["Date"])) &
-        (df["User"] == row["User"]) &
-        (df["Car Model"] == row["Car Model"]) &
-        (df["Service Type"] == row["Service Type"]) &
-        (df["Service Center"] == row["Service Center"])
-    ]
-
-    if not match.empty:
-        row_index = match.index[0]  # erste passende Zeile
-        confirm = st.checkbox("Yes, I want to delete this entry.")
-        if confirm:
-            if st.button("🗑️ Delete now"):
-                sheet = get_sheet()
-                sheet.delete_rows(row_index + 2)  # +2 für Header & 0-Index
-                st.success("✅ Entry deleted.")
-                st.rerun()
-    else:
-        st.error("⚠️ Could not uniquely identify row to delete.")
-
+# 📊 Show table
+st.dataframe(df, use_container_width=True)
