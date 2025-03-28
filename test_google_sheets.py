@@ -44,7 +44,9 @@ with st.form("new_entry_form"):
         "Bri": "Jeep",
         "Dad": "Kia"
     }
-    car_model = f"{user} {car_mapping[user]}"
+    car_options = list(car_mapping.values())
+    default_index = car_options.index(car_mapping[user])
+    car_model = st.selectbox("Car Model", car_options, index=default_index)
     
     service_center = st.text_input("Service Center")
     service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Other"])
