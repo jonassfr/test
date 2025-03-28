@@ -54,14 +54,13 @@ with st.form("new_entry_form"):
     cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
     status = st.selectbox("Status", ["active", "paused", "finished"])
     notes = st.text_input("Notes")
+    mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
     
     next_service = ""
-    mileage_last = ""
     mileage_interval = ""
 
     if is_recurring:
         next_service = st.date_input("Next Service Date")
-        mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
         mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
 
     submitted = st.form_submit_button("✅ Save Entry")
@@ -75,9 +74,9 @@ with st.form("new_entry_form"):
             cost,
             status,
             notes,
+            mileage_last,
             "yes" if is_recurring else "no",
             next_service.strftime("%m/%d/%Y") if is_recurring else "",
-            mileage_last,
             mileage_interval
         ]
         insert_data(row)
