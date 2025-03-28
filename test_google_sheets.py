@@ -123,3 +123,26 @@ if not reminders.empty:
 
 # 📊 Show table
 st.dataframe(df, use_container_width=True)
+st.markdown("---")
+st.subheader("🗑️ Delete an Entry")
+
+# Eine Liste mit lesbaren Beschreibungen pro Zeile generieren
+df_display = df.copy()
+df_display["Label"] = df_display.apply(
+    lambda row: f"{row['Date'].strftime('%m/%d/%Y')} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
+)
+
+# Zeile auswählen
+entry_to_delete = st.selectbox("Select an entry to delete", df_display["Label"].tolist())
+
+# Sicherheitsabfrage
+confirm = st.checkbox("Yes, I want to delete this entry.")
+
+# Wenn bestätigt → lösche
+if confirm and st.button("🗑️ Delete selected entry"):
+    # Hole den Index der ausgewählten Zeile
+    row_index = df_display[df_display["Label"] == entry_to_delete].index[0]
+    sheet = get_sheet()
+    sheet.delete_rows(row_index + 2)  # +2 wegen Header + 0-basierter Index
+    st.success("✅ Entry deleted.")
+    st.rerun()
