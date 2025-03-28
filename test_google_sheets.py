@@ -51,10 +51,10 @@ with st.form("new_entry_form"):
     
     service_center = st.text_input("Service Center")
     service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Battery", "Alignment", "Other"])
+    mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
     cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
     status = st.selectbox("Status", ["active", "paused", "finished"])
     notes = st.text_input("Notes")
-    mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
     
     next_service = ""
     mileage_interval = ""
@@ -71,10 +71,10 @@ with st.form("new_entry_form"):
             car_model,
             service_center,
             service_type,
+            mileage_last,
             cost,
             status,
             notes,
-            mileage_last,
             "yes" if is_recurring else "no",
             next_service.strftime("%m/%d/%Y") if is_recurring else "",
             mileage_interval
