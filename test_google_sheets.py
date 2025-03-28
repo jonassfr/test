@@ -126,28 +126,27 @@ st.dataframe(df, use_container_width=True)
 st.markdown("---")
 st.subheader("🗑️ Delete an Entry")
 
-# Eine Liste mit lesbaren Beschreibungen pro Zeile generieren
+# Neue Label-Spalte (Datum vorher in string umwandeln!)
 df_display = df.copy()
+df_display["Date_str"] = df_display["Date"].dt.strftime("%m/%d/%Y")
+
 df_display["Label"] = df_display.apply(
-    lambda row: f"{row['Date'].strftime('%m/%d/%Y')} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
+    lambda row: f"{row['Date_str']} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
 )
 
-# Zeile auswählen
 entry_to_delete = st.selectbox("Select an entry to delete", df_display["Label"].tolist())
 
-# Sicherheitsabfrage
 confirm = st.checkbox("Yes, I want to delete this entry.")
 
-# Wenn bestätigt → lösche
 if confirm and st.button("🗑️ Delete selected entry"):
-    matching_rows = df_display[df_display["Label"] == entry_to_delete]
-    
-    if not matching_rows.empty:
-        row_index = matching_rows.index[0]
+    match = df_display[df_display["Label"] == entry_to_delete]
+
+    if not match.empty:
+        row_index = match.index[0]
         sheet = get_sheet()
-        sheet.delete_rows(row_index + 2)  # +2 für Header + 0-basiert
+        sheet.delete_rows(row_index + 2)  # Header + 0-indexed
         st.success("✅ Entry deleted.")
         st.rerun()
     else:
-        st.error("⚠️ Entry could not be found in the table.")
+        st.error("⚠️ Could not find the entry in the table.")
 
