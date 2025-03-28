@@ -50,7 +50,7 @@ with st.form("new_entry_form"):
     car_model = st.selectbox("Car Model", car_options, index=default_index)
     
     service_center = st.text_input("Service Center")
-    service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Other"])
+    service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Battery", "Alignment", "Other"])
     cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
     status = st.selectbox("Status", ["active", "paused", "finished"])
     notes = st.text_input("Notes")
