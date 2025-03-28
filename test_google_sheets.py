@@ -30,6 +30,8 @@ def insert_data(row):
 st.title("🚗 Vehicle Management")
 
 st.header("➕ Add New Entry")
+is_recurring = st.checkbox("🔁 Recurring Service?")
+
 with st.form("new_entry_form"):
     date = st.date_input("Date")
     user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
@@ -50,7 +52,6 @@ with st.form("new_entry_form"):
     status = st.selectbox("Status", ["active", "paused", "finished"])
     notes = st.text_input("Notes")
     
-    is_recurring = st.checkbox("🔁 Recurring Service?")
     next_service = ""
     mileage_last = ""
     mileage_interval = ""
