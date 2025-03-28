@@ -58,7 +58,7 @@ with st.form("new_entry_form"):
     if is_recurring:
         next_service = st.date_input("Next Service Date")
         mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
-        mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)is_recurring)
+        mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
 
     submitted = st.form_submit_button("✅ Save Entry")
     if submitted:
