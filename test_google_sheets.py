@@ -140,9 +140,14 @@ confirm = st.checkbox("Yes, I want to delete this entry.")
 
 # Wenn bestätigt → lösche
 if confirm and st.button("🗑️ Delete selected entry"):
-    # Hole den Index der ausgewählten Zeile
-    row_index = df_display[df_display["Label"] == entry_to_delete].index[0]
-    sheet = get_sheet()
-    sheet.delete_rows(row_index + 2)  # +2 wegen Header + 0-basierter Index
-    st.success("✅ Entry deleted.")
-    st.rerun()
+    matching_rows = df_display[df_display["Label"] == entry_to_delete]
+    
+    if not matching_rows.empty:
+        row_index = matching_rows.index[0]
+        sheet = get_sheet()
+        sheet.delete_rows(row_index + 2)  # +2 für Header + 0-basiert
+        st.success("✅ Entry deleted.")
+        st.rerun()
+    else:
+        st.error("⚠️ Entry could not be found in the table.")
+
