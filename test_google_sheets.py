@@ -4,6 +4,17 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
+def admin_login():
+    st.sidebar.title("🔒 Admin Login")
+    password = st.sidebar.text_input("Passwort eingeben", type="password")
+    if password == "admin123":  # Du kannst das später über st.secrets absichern
+        return True
+    elif password:
+        st.sidebar.error("Falsches Passwort")
+        return False
+    else:
+        return False
+        
 # ✅ Connect to Google Sheets
 creds_dict = dict(st.secrets["GOOGLE_CREDENTIALS"])
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict)
@@ -28,124 +39,133 @@ def insert_data(row):
 
 # ✅ UI Start
 st.title("🚗 Vehicle Management")
+seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
 
-st.header("➕ Add New Entry")
-is_recurring = st.checkbox("🔁 Recurring Service?")
-user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
-
-with st.form("new_entry_form"):
-    date = st.date_input("Date")
+if seite == "📋 Dashboard":
+    st.header("➕ Add New Entry")
+    is_recurring = st.checkbox("🔁 Recurring Service?")
+    user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
+    
+    with st.form("new_entry_form"):
+        date = st.date_input("Date")
+        
+        
+        # Automatically assign car model based on user
+        car_mapping = {
+            "Bea": "Honda CRV",
+            "Nik": "Honda Accord",
+            "Bob": "Mitsubishi",
+            "Bri": "Jeep",
+            "Dad": "Kia"
+        }
+        car_options = list(car_mapping.values())
+        default_index = car_options.index(car_mapping[user])
+        car_model = st.selectbox("Car Model", car_options, index=default_index)
+        
+        service_center = st.text_input("Service Center")
+        service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Battery", "Alignment", "Other"])
+        mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
+        cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
+        status = st.selectbox("Status", ["active", "paused", "finished"])
+        notes = st.text_input("Notes")
+        
+        next_service = ""
+        mileage_interval = ""
+    
+        if is_recurring:
+            next_service = st.date_input("Next Service Date")
+            mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
+    
+        submitted = st.form_submit_button("✅ Save Entry")
+        if submitted:
+            row = [
+                date.strftime("%m/%d/%Y"),
+                user,
+                car_model,
+                service_center,
+                service_type,
+                mileage_last,
+                cost,
+                status,
+                notes,
+                "yes" if is_recurring else "no",
+                next_service.strftime("%m/%d/%Y") if is_recurring else "",
+                mileage_interval
+            ]
+            insert_data(row)
+            st.success("✅ Entry successfully saved!")
+            st.rerun()
+    
+    # ✅ Display Data
+    st.header("📋 All Entries")
+    df = get_data()
+    
+    # Make sure Cost ($) is numeric
+    df["Cost ($)"] = pd.to_numeric(df["Cost ($)"], errors="coerce")
+    
+    # 🔍 Filter by Car
+    car_filter = st.selectbox("🚘 Filter by Car", ["All"] + df["Car Model"].unique().tolist())
+    if car_filter != "All":
+        df = df[df["Car Model"] == car_filter]
+    
+    # 📆 Sort by date
+    df["Date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y")
+    df = df.sort_values(by="Date", ascending=False)
+    
+    # 💸 Total cost display
+    st.markdown(f"**💰 Total Cost:** ${df['Cost ($)'].sum():,.2f}")
+    
+    # 🔔 Reminder for due services
+    today = datetime.today()
+    reminders = df[
+        (df["Is Recurring"] == "yes") &
+        (df["Next Service Date"] != "") &
+        (pd.to_datetime(df["Next Service Date"], format="%m/%d/%Y") <= today)
+    ]
+    
+    if not reminders.empty:
+        st.warning("🔔 Upcoming Services Due:")
+        for _, row in reminders.iterrows():
+            mileage_info = f"{int(row['Mileage (Last)'])} mi / every {int(row['Mileage Interval'])} mi" \
+                if row["Mileage (Last)"] and row["Mileage Interval"] else "Mileage info missing"
+            st.write(
+                f"- {row['Car Model']} (due on {row['Next Service Date']} | {mileage_info})"
+            )
     
     
-    # Automatically assign car model based on user
-    car_mapping = {
-        "Bea": "Honda CRV",
-        "Nik": "Honda Accord",
-        "Bob": "Mitsubishi",
-        "Bri": "Jeep",
-        "Dad": "Kia"
-    }
-    car_options = list(car_mapping.values())
-    default_index = car_options.index(car_mapping[user])
-    car_model = st.selectbox("Car Model", car_options, index=default_index)
+    # 📊 Show table
+    st.dataframe(df, use_container_width=True)
+    st.markdown("---")
+    st.subheader("🗑️ Delete an Entry")
     
-    service_center = st.text_input("Service Center")
-    service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Battery", "Alignment", "Other"])
-    mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
-    cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
-    status = st.selectbox("Status", ["active", "paused", "finished"])
-    notes = st.text_input("Notes")
+    # String-Datum + Label bauen
+    df_display = df.copy()
+    df_display["Date_str"] = df_display["Date"].dt.strftime("%m/%d/%Y")
+    df_display["Label"] = df_display.apply(
+        lambda row: f"{row['Date_str']} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
+    )
     
-    next_service = ""
-    mileage_interval = ""
+    entry_to_delete = st.selectbox("Select an entry to delete", df_display["Label"].tolist())
+    
+    confirm = st.checkbox("Yes, I want to delete this entry.")
+    
+    if confirm and st.button("🗑️ Delete selected entry"):
+        match = df_display[df_display["Label"] == entry_to_delete]
+    
+        if not match.empty:
+            row_index = int(match.index[0])  # 👈 Hier ist der entscheidende Fix
+            sheet = get_sheet()
+            sheet.delete_rows(row_index + 2)
+            st.success("✅ Entry deleted.")
+            st.rerun()
+        else:
+            st.error("⚠️ Could not find the entry in the table.")
 
-    if is_recurring:
-        next_service = st.date_input("Next Service Date")
-        mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
-
-    submitted = st.form_submit_button("✅ Save Entry")
-    if submitted:
-        row = [
-            date.strftime("%m/%d/%Y"),
-            user,
-            car_model,
-            service_center,
-            service_type,
-            mileage_last,
-            cost,
-            status,
-            notes,
-            "yes" if is_recurring else "no",
-            next_service.strftime("%m/%d/%Y") if is_recurring else "",
-            mileage_interval
-        ]
-        insert_data(row)
-        st.success("✅ Entry successfully saved!")
-        st.rerun()
-
-# ✅ Display Data
-st.header("📋 All Entries")
-df = get_data()
-
-# Make sure Cost ($) is numeric
-df["Cost ($)"] = pd.to_numeric(df["Cost ($)"], errors="coerce")
-
-# 🔍 Filter by Car
-car_filter = st.selectbox("🚘 Filter by Car", ["All"] + df["Car Model"].unique().tolist())
-if car_filter != "All":
-    df = df[df["Car Model"] == car_filter]
-
-# 📆 Sort by date
-df["Date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y")
-df = df.sort_values(by="Date", ascending=False)
-
-# 💸 Total cost display
-st.markdown(f"**💰 Total Cost:** ${df['Cost ($)'].sum():,.2f}")
-
-# 🔔 Reminder for due services
-today = datetime.today()
-reminders = df[
-    (df["Is Recurring"] == "yes") &
-    (df["Next Service Date"] != "") &
-    (pd.to_datetime(df["Next Service Date"], format="%m/%d/%Y") <= today)
-]
-
-if not reminders.empty:
-    st.warning("🔔 Upcoming Services Due:")
-    for _, row in reminders.iterrows():
-        mileage_info = f"{int(row['Mileage (Last)'])} mi / every {int(row['Mileage Interval'])} mi" \
-            if row["Mileage (Last)"] and row["Mileage Interval"] else "Mileage info missing"
-        st.write(
-            f"- {row['Car Model']} (due on {row['Next Service Date']} | {mileage_info})"
-        )
-
-
-# 📊 Show table
-st.dataframe(df, use_container_width=True)
-st.markdown("---")
-st.subheader("🗑️ Delete an Entry")
-
-# String-Datum + Label bauen
-df_display = df.copy()
-df_display["Date_str"] = df_display["Date"].dt.strftime("%m/%d/%Y")
-df_display["Label"] = df_display.apply(
-    lambda row: f"{row['Date_str']} | {row['Car Model']} | {row['Service Type']} | {row['Service Center']}", axis=1
-)
-
-entry_to_delete = st.selectbox("Select an entry to delete", df_display["Label"].tolist())
-
-confirm = st.checkbox("Yes, I want to delete this entry.")
-
-if confirm and st.button("🗑️ Delete selected entry"):
-    match = df_display[df_display["Label"] == entry_to_delete]
-
-    if not match.empty:
-        row_index = int(match.index[0])  # 👈 Hier ist der entscheidende Fix
-        sheet = get_sheet()
-        sheet.delete_rows(row_index + 2)
-        st.success("✅ Entry deleted.")
-        st.rerun()
+elif seite == "🛠️ Admin-Bereich":
+    if admin_login():
+        st.success("Zugang gewährt. Willkommen im Admin-Bereich!")
+        # Hier kommt im nächsten Schritt das Admin-Menü rein (Auto-Modell, Service etc.)
     else:
-        st.error("⚠️ Could not find the entry in the table.")
-
-
+        st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
+    
+    
