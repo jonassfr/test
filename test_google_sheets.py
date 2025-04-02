@@ -101,7 +101,8 @@ if seite == "📋 Dashboard":
             mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
     
         # 🔍 Lade dynamische Zusatzspalten
-        header_spalten = get_sheet().row_values(1)
+        main_sheet = get_sheet()
+        header_spalten = main_sheet().row_values(1)
         zusatz_spalten = [spalte for spalte in header_spalten if spalte not in STANDARD_SPALTEN]
     
         # 💾 Eingaben der Zusatzspalten
