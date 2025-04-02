@@ -57,6 +57,12 @@ def get_service_typen():
 st.title("🚗 Vehicle Management")
 seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
 
+STANDARD_SPALTEN = [
+    "Date", "User", "Car Model", "Service Center", "Service Type",
+    "Mileage at last service (mi)", "Cost ($)", "Status", "Notes",
+    "Is Recurring", "Next Service Date", "Mileage interval until next service (mi)"
+]
+
 if seite == "📋 Dashboard":
     st.header("➕ Add New Entry")
     is_recurring = st.checkbox("🔁 Recurring Service?")
