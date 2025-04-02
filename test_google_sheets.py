@@ -22,13 +22,8 @@ client = gspread.authorize(creds)
 
 # ✅ Load Sheet
 SHEET_NAME = "FuhrparkDaten"
-@st.cache_data(ttl=60)
 def get_sheet():
-    try:
-        return client.open(SHEET_NAME).worksheet("Tabellenblatt1")
-    except Exception as e:
-        st.error(f"❌ Fehler beim Laden des Sheets: {e}")
-        return None
+    return client.open(SHEET_NAME).sheet1
 
 def get_data():
     sheet = get_sheet()
@@ -42,7 +37,6 @@ def insert_data(row):
     sheet = get_sheet()
     sheet.append_row(row)
 
-@st.cache_data(ttl=60)
 def get_modelle():
     try:
         modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
@@ -50,8 +44,7 @@ def get_modelle():
     except Exception as e:
         st.error(f"Fehler beim Laden der Modelle: {e}")
         return []
-
-@st.cache_data(ttl=60)
+        
 def get_service_typen():
     try:
         service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
@@ -64,17 +57,18 @@ def get_service_typen():
 st.title("🚗 Vehicle Management")
 seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
 
-
 if seite == "📋 Dashboard":
-    sheet=get_sheet()
     st.header("➕ Add New Entry")
     is_recurring = st.checkbox("🔁 Recurring Service?")
     user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
     
     with st.form("new_entry_form"):
         date = st.date_input("Date")
-    
+        
+        
         car_options = get_modelle()
+
+        # Standardmodell abhängig vom User (Fallback, falls kein Mapping passt)
         default_model = {
             "Bea": "Honda CRV",
             "Nik": "Honda Accord",
@@ -82,25 +76,22 @@ if seite == "📋 Dashboard":
             "Bri": "Jeep",
             "Dad": "Kia"
         }.get(user, car_options[0] if car_options else "")
+        
         default_index = car_options.index(default_model) if default_model in car_options else 0
+        
         car_model = st.selectbox("Car Model", car_options, index=default_index)
-    
+        
         service_center = st.text_input("Service Center")
-    
+        
         service_type_options = get_service_typen()
         if not service_type_options:
             service_type_options = ["- keine Service-Typen vorhanden -"]
         service_type = st.selectbox("Service Type", service_type_options)
-    
+        
         mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
         cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
         status = st.selectbox("Status", ["active", "paused", "finished"])
         notes = st.text_input("Notes")
-    
-        if is_recurring:
-            next_service = st.date_input("Next Service Date")
-            mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
-
         
         next_service = ""
         mileage_interval = ""
@@ -125,8 +116,6 @@ if seite == "📋 Dashboard":
                 next_service.strftime("%m/%d/%Y") if is_recurring else "",
                 mileage_interval
             ]
-    
-    
             insert_data(row)
             st.success("✅ Entry successfully saved!")
             st.rerun()
@@ -274,9 +263,33 @@ elif seite == "🛠️ Admin-Bereich":
                         break
         except Exception as e:
             st.error(f"Fehler beim Anzeigen oder Löschen: {e}")
-        
+        st.markdown("---")
+        st.header("➕ Neue Spalte zur Haupttabelle hinzufügen")
+
+        neue_spalte = st.text_input("Name der neuen Spalte")
+
+        if st.button("Spalte hinzufügen") and neue_spalte:
+            try:
+                main_sheet = get_sheet()
+                header = main_sheet.row_values(1)
+
+                if neue_spalte in header:
+                    st.warning("Diese Spalte existiert bereits.")
+                else:
+                    neue_spalten_index = len(header) + 1
+                    main_sheet.update_cell(1, neue_spalten_index, neue_spalte)
+
+                    # Leere Zellen in allen bestehenden Zeilen füllen
+                    num_rows = len(main_sheet.get_all_values())
+                    if num_rows > 1:
+                        main_sheet.batch_update([{
+                            'range': f"{gspread.utils.rowcol_to_a1(2, neue_spalten_index)}:{gspread.utils.rowcol_to_a1(num_rows, neue_spalten_index)}",
+                            'values': [[""] for _ in range(num_rows - 1)]
+                        }])
+                    st.success(f"✅ Neue Spalte '{neue_spalte}' wurde erfolgreich hinzugefügt.")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Fehler beim Hinzufügen: {e}")
             
     else:
         st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
-    
-    
