@@ -64,11 +64,8 @@ if seite == "📋 Dashboard":
     
     with st.form("new_entry_form"):
         date = st.date_input("Date")
-        
-        
+    
         car_options = get_modelle()
-
-        # Standardmodell abhängig vom User (Fallback, falls kein Mapping passt)
         default_model = {
             "Bea": "Honda CRV",
             "Nik": "Honda Accord",
@@ -76,22 +73,38 @@ if seite == "📋 Dashboard":
             "Bri": "Jeep",
             "Dad": "Kia"
         }.get(user, car_options[0] if car_options else "")
-        
         default_index = car_options.index(default_model) if default_model in car_options else 0
-        
         car_model = st.selectbox("Car Model", car_options, index=default_index)
-        
+    
         service_center = st.text_input("Service Center")
-        
+    
         service_type_options = get_service_typen()
         if not service_type_options:
             service_type_options = ["- keine Service-Typen vorhanden -"]
         service_type = st.selectbox("Service Type", service_type_options)
-        
+    
         mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
         cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
         status = st.selectbox("Status", ["active", "paused", "finished"])
         notes = st.text_input("Notes")
+    
+        next_service = ""
+        mileage_interval = ""
+        if is_recurring:
+            next_service = st.date_input("Next Service Date")
+            mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
+    
+        # 🔍 Lade dynamische Zusatzspalten
+        header_spalten = get_sheet().row_values(1)
+        zusatz_spalten = [spalte for spalte in header_spalten if spalte not in STANDARD_SPALTEN]
+    
+        # 💾 Eingaben der Zusatzspalten
+        zusatzwerte = {}
+        if zusatz_spalten:
+            st.markdown("---")
+            st.subheader("🧩 Zusätzliche Felder")
+            for spalte in zusatz_spalten:
+                zusatzwerte[spalte] = st.text_input(spalte)
         
         next_service = ""
         mileage_interval = ""
@@ -116,6 +129,11 @@ if seite == "📋 Dashboard":
                 next_service.strftime("%m/%d/%Y") if is_recurring else "",
                 mileage_interval
             ]
+    
+            # ➕ Zusatzspalten ergänzen
+            for spalte in zusatz_spalten:
+                row.append(zusatzwerte.get(spalte, ""))
+    
             insert_data(row)
             st.success("✅ Entry successfully saved!")
             st.rerun()
