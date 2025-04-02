@@ -37,6 +37,14 @@ def insert_data(row):
     sheet = get_sheet()
     sheet.append_row(row)
 
+def get_modelle():
+    try:
+        modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
+        return [row[0] for row in modell_sheet.get_all_values() if row]
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Modelle: {e}")
+        return []
+
 # ✅ UI Start
 st.title("🚗 Vehicle Management")
 seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
@@ -50,16 +58,19 @@ if seite == "📋 Dashboard":
         date = st.date_input("Date")
         
         
-        # Automatically assign car model based on user
-        car_mapping = {
+        car_options = get_modelle()
+
+        # Standardmodell abhängig vom User (Fallback, falls kein Mapping passt)
+        default_model = {
             "Bea": "Honda CRV",
             "Nik": "Honda Accord",
             "Bob": "Mitsubishi",
             "Bri": "Jeep",
             "Dad": "Kia"
-        }
-        car_options = list(car_mapping.values())
-        default_index = car_options.index(car_mapping[user])
+        }.get(user, car_options[0] if car_options else "")
+        
+        default_index = car_options.index(default_model) if default_model in car_options else 0
+        
         car_model = st.selectbox("Car Model", car_options, index=default_index)
         
         service_center = st.text_input("Service Center")
