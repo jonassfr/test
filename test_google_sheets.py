@@ -106,6 +106,9 @@ if seite == "📋 Dashboard":
     
         # 🔍 Lade dynamische Zusatzspalten
         sheet = get_sheet()
+        if sheet is None:
+            st.error("❌ Das Google Sheet konnte nicht geladen werden. Bitte später erneut versuchen.")
+            st.stop()
         header_spalten = sheet.row_values(1)
         zusatz_spalten = [spalte for spalte in header_spalten if spalte not in STANDARD_SPALTEN]
     
