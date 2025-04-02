@@ -212,6 +212,45 @@ elif seite == "🛠️ Admin-Bereich":
                         break
         except Exception as e:
             st.error(f"Fehler beim Laden oder Löschen der Modelle: {e}")
+
+        st.markdown("---")
+        st.header("🔧 Service-Typen verwalten")
+
+        # Service-Typ hinzufügen
+        neuer_service = st.text_input("Name des neuen Service-Typs")
+        if st.button("Service-Typ hinzufügen") and neuer_service:
+            try:
+                service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
+                vorhandene_services = [x[0] for x in service_sheet.get_all_values()]
+                if neuer_service in vorhandene_services:
+                    st.warning("Service-Typ existiert bereits.")
+                else:
+                    service_sheet.append_row([neuer_service])
+                    st.success(f"✅ Service-Typ '{neuer_service}' wurde hinzugefügt.")
+            except Exception as e:
+                st.error(f"Fehler beim Hinzufügen: {e}")
+
+        # Aktuelle Liste anzeigen und löschen
+        try:
+            service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
+            services_df = pd.DataFrame(service_sheet.get_all_values(), columns=["Service"])
+            st.subheader("📄 Aktuelle Service-Typen")
+            st.dataframe(services_df)
+
+            st.subheader("🗑️ Service-Typ löschen")
+            service_zum_loeschen = st.selectbox("Wähle einen Service-Typ zum Löschen", services_df["Service"].tolist())
+
+            if st.button("Service-Typ löschen"):
+                zeilen = service_sheet.get_all_values()
+                for i, row in enumerate(zeilen):
+                    if row and row[0] == service_zum_loeschen:
+                        service_sheet.delete_rows(i + 1)
+                        st.success(f"✅ Service-Typ '{service_zum_loeschen}' wurde gelöscht.")
+                        st.rerun()
+                        break
+        except Exception as e:
+            st.error(f"Fehler beim Anzeigen oder Löschen: {e}")
+            
     else:
         st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
     
