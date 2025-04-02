@@ -44,6 +44,14 @@ def get_modelle():
     except Exception as e:
         st.error(f"Fehler beim Laden der Modelle: {e}")
         return []
+        
+def get_service_typen():
+    try:
+        service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
+        return [row[0] for row in service_sheet.get_all_values() if row]
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Service-Typen: {e}")
+        return []
 
 # ✅ UI Start
 st.title("🚗 Vehicle Management")
@@ -74,7 +82,12 @@ if seite == "📋 Dashboard":
         car_model = st.selectbox("Car Model", car_options, index=default_index)
         
         service_center = st.text_input("Service Center")
-        service_type = st.selectbox("Service Type", ["Inspection", "Oil Change", "Tires", "Brakes", "Checkup", "Battery", "Alignment", "Other"])
+        
+        service_type_options = get_service_typen()
+        if not service_type_options:
+            service_type_options = ["- keine Service-Typen vorhanden -"]
+        service_type = st.selectbox("Service Type", service_type_options)
+        
         mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
         cost = st.number_input("Cost ($)", min_value=0.0, step=10.0)
         status = st.selectbox("Status", ["active", "paused", "finished"])
