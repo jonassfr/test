@@ -97,8 +97,6 @@ if seite == "📋 Dashboard":
         status = st.selectbox("Status", ["active", "paused", "finished"])
         notes = st.text_input("Notes")
     
-        next_service = ""
-        mileage_interval = ""
         if is_recurring:
             next_service = st.date_input("Next Service Date")
             mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
