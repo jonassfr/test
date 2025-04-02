@@ -67,6 +67,7 @@ STANDARD_SPALTEN = [
 ]
 
 if seite == "📋 Dashboard":
+    sheet=get_sheet()
     st.header("➕ Add New Entry")
     is_recurring = st.checkbox("🔁 Recurring Service?")
     user = st.selectbox("Who is submitting?", ["Bea", "Nik", "Bob", "Bri", "Dad"])
@@ -104,8 +105,8 @@ if seite == "📋 Dashboard":
             mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
     
         # 🔍 Lade dynamische Zusatzspalten
-        main_sheet = get_sheet()
-        header_spalten = main_sheet.row_values(1)
+        sheet = get_sheet()
+        header_spalten = sheet.row_values(1)
         zusatz_spalten = [spalte for spalte in header_spalten if spalte not in STANDARD_SPALTEN]
     
         # 💾 Eingaben der Zusatzspalten
@@ -298,19 +299,19 @@ elif seite == "🛠️ Admin-Bereich":
 
         if st.button("Spalte hinzufügen") and neue_spalte:
             try:
-                main_sheet = get_sheet()
-                header = main_sheet.row_values(1)
+                sheet = get_sheet()
+                header = sheet.row_values(1)
 
                 if neue_spalte in header:
                     st.warning("Diese Spalte existiert bereits.")
                 else:
                     neue_spalten_index = len(header) + 1
-                    main_sheet.update_cell(1, neue_spalten_index, neue_spalte)
+                    sheet.update_cell(1, neue_spalten_index, neue_spalte)
 
                     # Leere Zellen in allen bestehenden Zeilen füllen
-                    num_rows = len(main_sheet.get_all_values())
+                    num_rows = len(sheet.get_all_values())
                     if num_rows > 1:
-                        main_sheet.batch_update([{
+                        sheet.batch_update([{
                             'range': f"{gspread.utils.rowcol_to_a1(2, neue_spalten_index)}:{gspread.utils.rowcol_to_a1(num_rows, neue_spalten_index)}",
                             'values': [[""] for _ in range(num_rows - 1)]
                         }])
