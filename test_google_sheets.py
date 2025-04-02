@@ -189,6 +189,29 @@ elif seite == "🛠️ Admin-Bereich":
                     st.success(f"✅ Modell '{neues_modell}' wurde hinzugefügt.")
             except Exception as e:
                 st.error(f"Fehler: {e}")
+        # 🔽 NEU: Modelle anzeigen und löschen
+        st.markdown("---")
+        st.subheader("📄 Aktuelle Modellliste")
+
+        try:
+            modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
+            modelle_df = pd.DataFrame(modell_sheet.get_all_values(), columns=["Modell"])
+            st.dataframe(modelle_df)
+
+            # Auswahl für Löschung
+            st.subheader("🗑️ Auto-Modell löschen")
+            modell_zum_loeschen = st.selectbox("Wähle ein Modell zum Löschen", modelle_df["Modell"].tolist())
+
+            if st.button("Modell löschen"):
+                zeilen = modell_sheet.get_all_values()
+                for i, row in enumerate(zeilen):
+                    if row and row[0] == modell_zum_loeschen:
+                        modell_sheet.delete_rows(i + 1)  # +1 wegen 1-basiertem Index
+                        st.success(f"✅ Modell '{modell_zum_loeschen}' wurde gelöscht.")
+                        st.rerun()
+                        break
+        except Exception as e:
+            st.error(f"Fehler beim Laden oder Löschen der Modelle: {e}")
     else:
         st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
     
