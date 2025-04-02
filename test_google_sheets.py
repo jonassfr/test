@@ -24,7 +24,11 @@ client = gspread.authorize(creds)
 SHEET_NAME = "FuhrparkDaten"
 @st.cache_data(ttl=60)
 def get_sheet():
-    return client.open(SHEET_NAME).sheet1
+    try:
+        return client.open(SHEET_NAME).sheet1
+    except Exception as e:
+        st.error(f"❌ Fehler beim Laden des Sheets: {e}")
+        return None
 
 def get_data():
     sheet = get_sheet()
