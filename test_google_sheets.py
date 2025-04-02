@@ -25,7 +25,7 @@ SHEET_NAME = "FuhrparkDaten"
 @st.cache_data(ttl=60)
 def get_sheet():
     try:
-        return client.open(SHEET_NAME).sheet1
+        return client.open(SHEET_NAME).worksheet("Tabellenblatt1")
     except Exception as e:
         st.error(f"❌ Fehler beim Laden des Sheets: {e}")
         return None
