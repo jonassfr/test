@@ -164,7 +164,20 @@ if seite == "📋 Dashboard":
 elif seite == "🛠️ Admin-Bereich":
     if admin_login():
         st.success("Zugang gewährt. Willkommen im Admin-Bereich!")
-        # Hier kommt im nächsten Schritt das Admin-Menü rein (Auto-Modell, Service etc.)
+
+        st.header("🚗 Neues Auto-Modell hinzufügen")
+        neues_modell = st.text_input("Name des neuen Modells")
+        if st.button("Modell hinzufügen") and neues_modell:
+            try:
+                modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
+                vorhandene_modelle = [x[0] for x in modell_sheet.get_all_values()]
+                if neues_modell in vorhandene_modelle:
+                    st.warning("Modell existiert bereits.")
+                else:
+                    modell_sheet.append_row([neues_modell])
+                    st.success(f"✅ Modell '{neues_modell}' wurde hinzugefügt.")
+            except Exception as e:
+                st.error(f"Fehler: {e}")
     else:
         st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
     
