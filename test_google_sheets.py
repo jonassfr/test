@@ -22,6 +22,7 @@ client = gspread.authorize(creds)
 
 # ✅ Load Sheet
 SHEET_NAME = "FuhrparkDaten"
+@st.cache_data(ttl=60)
 def get_sheet():
     return client.open(SHEET_NAME).sheet1
 
@@ -37,6 +38,7 @@ def insert_data(row):
     sheet = get_sheet()
     sheet.append_row(row)
 
+@st.cache_data(ttl=60)
 def get_modelle():
     try:
         modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
@@ -44,7 +46,8 @@ def get_modelle():
     except Exception as e:
         st.error(f"Fehler beim Laden der Modelle: {e}")
         return []
-        
+
+@st.cache_data(ttl=60)
 def get_service_typen():
     try:
         service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
