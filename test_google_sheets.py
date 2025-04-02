@@ -64,11 +64,6 @@ def get_service_typen():
 st.title("🚗 Vehicle Management")
 seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
 
-STANDARD_SPALTEN = [
-    "Date", "User", "Car Model", "Service Center", "Service Type",
-    "Mileage at last service (mi)", "Cost ($)", "Status", "Notes",
-    "Is Recurring", "Next Service Date", "Mileage interval until next service (mi)"
-]
 
 if seite == "📋 Dashboard":
     sheet=get_sheet()
@@ -107,22 +102,7 @@ if seite == "📋 Dashboard":
         if is_recurring:
             next_service = st.date_input("Next Service Date")
             mileage_interval = st.number_input("Mileage interval until next service (mi)", min_value=0)
-    
-        # 🔍 Lade dynamische Zusatzspalten
-        sheet = get_sheet()
-        if sheet is None:
-            st.error("❌ Das Google Sheet konnte nicht geladen werden. Bitte später erneut versuchen.")
-            st.stop()
-        header_spalten = sheet.row_values(1)
-        zusatz_spalten = [spalte for spalte in header_spalten if spalte not in STANDARD_SPALTEN]
-    
-        # 💾 Eingaben der Zusatzspalten
-        zusatzwerte = {}
-        if zusatz_spalten:
-            st.markdown("---")
-            st.subheader("🧩 Zusätzliche Felder")
-            for spalte in zusatz_spalten:
-                zusatzwerte[spalte] = st.text_input(spalte)
+
         
         next_service = ""
         mileage_interval = ""
@@ -148,9 +128,6 @@ if seite == "📋 Dashboard":
                 mileage_interval
             ]
     
-            # ➕ Zusatzspalten ergänzen
-            for spalte in zusatz_spalten:
-                row.append(zusatzwerte.get(spalte, ""))
     
             insert_data(row)
             st.success("✅ Entry successfully saved!")
@@ -299,33 +276,7 @@ elif seite == "🛠️ Admin-Bereich":
                         break
         except Exception as e:
             st.error(f"Fehler beim Anzeigen oder Löschen: {e}")
-        st.markdown("---")
-        st.header("➕ Neue Spalte zur Haupttabelle hinzufügen")
-
-        neue_spalte = st.text_input("Name der neuen Spalte")
-
-        if st.button("Spalte hinzufügen") and neue_spalte:
-            try:
-                sheet = get_sheet()
-                header = sheet.row_values(1)
-
-                if neue_spalte in header:
-                    st.warning("Diese Spalte existiert bereits.")
-                else:
-                    neue_spalten_index = len(header) + 1
-                    sheet.update_cell(1, neue_spalten_index, neue_spalte)
-
-                    # Leere Zellen in allen bestehenden Zeilen füllen
-                    num_rows = len(sheet.get_all_values())
-                    if num_rows > 1:
-                        sheet.batch_update([{
-                            'range': f"{gspread.utils.rowcol_to_a1(2, neue_spalten_index)}:{gspread.utils.rowcol_to_a1(num_rows, neue_spalten_index)}",
-                            'values': [[""] for _ in range(num_rows - 1)]
-                        }])
-                    st.success(f"✅ Neue Spalte '{neue_spalte}' wurde erfolgreich hinzugefügt.")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Fehler beim Hinzufügen: {e}")
+        
             
     else:
         st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
