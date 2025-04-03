@@ -6,11 +6,11 @@ from datetime import datetime
 
 def admin_login():
     st.sidebar.title("🔒 Admin Login")
-    password = st.sidebar.text_input("Passwort eingeben", type="password")
-    if password == "admin123":  # Du kannst das später über st.secrets absichern
+    password = st.sidebar.text_input("Enter Password", type="password")
+    if password == "B3ll@621":  # Du kannst das später über st.secrets absichern
         return True
     elif password:
-        st.sidebar.error("Falsches Passwort")
+        st.sidebar.error("Wrong Password")
         return False
     else:
         return False
@@ -42,7 +42,7 @@ def get_modelle():
         modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
         return [row[0] for row in modell_sheet.get_all_values() if row]
     except Exception as e:
-        st.error(f"Fehler beim Laden der Modelle: {e}")
+        st.error(f"Error Loading Modells: {e}")
         return []
         
 def get_service_typen():
@@ -50,12 +50,12 @@ def get_service_typen():
         service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
         return [row[0] for row in service_sheet.get_all_values() if row]
     except Exception as e:
-        st.error(f"Fehler beim Laden der Service-Typen: {e}")
+        st.error(f"Error Loading Service Types: {e}")
         return []
 
 # ✅ UI Start
 st.title("🚗 Vehicle Management")
-seite = st.sidebar.selectbox("Menü", ["📋 Dashboard", "🛠️ Admin-Bereich"])
+seite = st.sidebar.selectbox("Menu", ["📋 Dashboard", "🛠️ Admin-Section"])
 
 if seite == "📋 Dashboard":
     st.header("➕ Add New Entry")
@@ -85,7 +85,7 @@ if seite == "📋 Dashboard":
         
         service_type_options = get_service_typen()
         if not service_type_options:
-            service_type_options = ["- keine Service-Typen vorhanden -"]
+            service_type_options = ["- no Service Type -"]
         service_type = st.selectbox("Service Type", service_type_options)
         
         mileage_last = st.number_input("Mileage at last service (mi)", min_value=0)
@@ -185,26 +185,26 @@ if seite == "📋 Dashboard":
         else:
             st.error("⚠️ Could not find the entry in the table.")
 
-elif seite == "🛠️ Admin-Bereich":
+elif seite == "🛠️ Admin-Section":
     if admin_login():
-        st.success("Zugang gewährt. Willkommen im Admin-Bereich!")
+        st.success("Access granted. Welcome to the admin area!")
 
-        st.header("🚗 Neues Auto-Modell hinzufügen")
-        neues_modell = st.text_input("Name des neuen Modells")
-        if st.button("Modell hinzufügen") and neues_modell:
+        st.header("🚗 Add new Car Model")
+        neues_modell = st.text_input("Name of new Model")
+        if st.button("Add Model") and neues_modell:
             try:
                 modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
                 vorhandene_modelle = [x[0] for x in modell_sheet.get_all_values()]
                 if neues_modell in vorhandene_modelle:
-                    st.warning("Modell existiert bereits.")
+                    st.warning("Modell already exists.")
                 else:
                     modell_sheet.append_row([neues_modell])
-                    st.success(f"✅ Modell '{neues_modell}' wurde hinzugefügt.")
+                    st.success(f"✅ Model '{neues_modell}' added successfully.")
             except Exception as e:
                 st.error(f"Fehler: {e}")
         # 🔽 NEU: Modelle anzeigen und löschen
         st.markdown("---")
-        st.subheader("📄 Aktuelle Modellliste")
+        st.subheader("📄 Current Model List")
 
         try:
             modell_sheet = client.open(SHEET_NAME).worksheet("Modelle")
@@ -212,58 +212,58 @@ elif seite == "🛠️ Admin-Bereich":
             st.dataframe(modelle_df)
 
             # Auswahl für Löschung
-            st.subheader("🗑️ Auto-Modell löschen")
-            modell_zum_loeschen = st.selectbox("Wähle ein Modell zum Löschen", modelle_df["Modell"].tolist())
+            st.subheader("🗑️ Delete Car Model")
+            modell_zum_loeschen = st.selectbox("Pick Model to delete", modelle_df["Modell"].tolist())
 
-            if st.button("Modell löschen"):
+            if st.button("Delete Model"):
                 zeilen = modell_sheet.get_all_values()
                 for i, row in enumerate(zeilen):
                     if row and row[0] == modell_zum_loeschen:
                         modell_sheet.delete_rows(i + 1)  # +1 wegen 1-basiertem Index
-                        st.success(f"✅ Modell '{modell_zum_loeschen}' wurde gelöscht.")
+                        st.success(f"✅ Model '{modell_zum_loeschen}' deleted successfully.")
                         st.rerun()
                         break
         except Exception as e:
-            st.error(f"Fehler beim Laden oder Löschen der Modelle: {e}")
+            st.error(f"Error for loading or deleting Model: {e}")
 
         st.markdown("---")
-        st.header("🔧 Service-Typen verwalten")
+        st.header("🔧 Manage Service Types")
 
         # Service-Typ hinzufügen
-        neuer_service = st.text_input("Name des neuen Service-Typs")
-        if st.button("Service-Typ hinzufügen") and neuer_service:
+        neuer_service = st.text_input("Name of new Service Type")
+        if st.button("Add Service Type") and neuer_service:
             try:
                 service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
                 vorhandene_services = [x[0] for x in service_sheet.get_all_values()]
                 if neuer_service in vorhandene_services:
-                    st.warning("Service-Typ existiert bereits.")
+                    st.warning("Service Type already exists.")
                 else:
                     service_sheet.append_row([neuer_service])
-                    st.success(f"✅ Service-Typ '{neuer_service}' wurde hinzugefügt.")
+                    st.success(f"✅ Service Type '{neuer_service}' added successfully.")
             except Exception as e:
-                st.error(f"Fehler beim Hinzufügen: {e}")
+                st.error(f"Error for adding: {e}")
 
         # Aktuelle Liste anzeigen und löschen
         try:
             service_sheet = client.open(SHEET_NAME).worksheet("ServiceTypen")
             services_df = pd.DataFrame(service_sheet.get_all_values(), columns=["Service"])
-            st.subheader("📄 Aktuelle Service-Typen")
+            st.subheader("📄 Current Service Types")
             st.dataframe(services_df)
 
-            st.subheader("🗑️ Service-Typ löschen")
-            service_zum_loeschen = st.selectbox("Wähle einen Service-Typ zum Löschen", services_df["Service"].tolist())
+            st.subheader("🗑️ Delete Service Type")
+            service_zum_loeschen = st.selectbox("Pick Service Type to delete", services_df["Service"].tolist())
 
-            if st.button("Service-Typ löschen"):
+            if st.button("Delete Service Type"):
                 zeilen = service_sheet.get_all_values()
                 for i, row in enumerate(zeilen):
                     if row and row[0] == service_zum_loeschen:
                         service_sheet.delete_rows(i + 1)
-                        st.success(f"✅ Service-Typ '{service_zum_loeschen}' wurde gelöscht.")
+                        st.success(f"✅ Service Type '{service_zum_loeschen}' deleted successfully.")
                         st.rerun()
                         break
         except Exception as e:
-            st.error(f"Fehler beim Anzeigen oder Löschen: {e}")
+            st.error(f"Error for printing or deleting: {e}")
         
             
     else:
-        st.warning("Bitte Passwort eingeben, um Zugriff zu erhalten.")
+        st.warning("Please enter the password to gain access.")
